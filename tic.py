@@ -1,0 +1,137 @@
+import tkinter as tk
+from tkinter import messagebox
+import random
+
+def print_board(board):
+    for row in board:
+        print(" | ".join(row))
+        print("-" * 9)
+
+def check_winner(board, player):
+    for row in board:
+        if all(cell == player for cell in row):
+            return True
+
+    for col in range(3):
+        if all(board[row][col] == player for row in range(3)):
+            return True
+
+    if all(board[i][i] == player for i in range(3)) or all(board[i][2 - i] == player for i in range(3)):
+        return True
+
+    return False
+
+def is_board_full(board):
+    for row in board:
+        if " " in row:
+            return False
+    return True
+
+def restart_game():
+    for i in range(3):
+        for j in range(3):
+            board[i][j] = " "
+            buttons[i][j].config(text=" ", state="active")
+    global player
+    player = "X"
+
+def new_game():
+    restart_game()
+    messagebox.showinfo("Tic-Tac-Toe", "New game started!")
+
+def on_button_click(row, col):
+    global player
+    if board[row][col] == " ":
+        board[row][col] = player
+        buttons[row][col].config(text=player, state="disabled")
+        if check_winner(board, player):
+            messagebox.showinfo("Tic-Tac-Toe", f"Player {player} ({player_names[player]}) wins!")
+            restart_game()
+        elif is_board_full(board):
+            messagebox.showinfo("Tic-Tac-Toe", "It's a tie!")
+            restart_game()
+        else:
+            player = "O" if player == "X" else "X"
+            if player == "O":
+                if mode == "Computer vs. Human":
+                    computer_move()
+
+def computer_move():
+    empty_cells = [(i, j) for i in range(3) for j in range(3) if board[i][j] == " "]
+    if empty_cells:
+        row, col = random.choice(empty_cells)
+        on_button_click(row, col)
+
+def computer_vs_computer_move():
+    empty_cells = [(i, j) for i in range(3) for j in range(3) if board[i][j] == " "]
+    if empty_cells:
+        row, col = random.choice(empty_cells)
+        on_button_click(row, col)
+
+def set_mode_human_vs_human():
+    global mode, player, player1_name, player2_name
+    mode = "Human vs. Human"
+    player = "X"
+    player1_name = input("Enter Player 1's name: ")
+    player2_name = input("Enter Player 2's name: ")
+    player_names["X"] = player1_name
+    player_names["O"] = player2_name
+    restart_game()
+
+def set_mode_computer_vs_computer():
+    global mode, player
+    mode = "Computer vs. Computer"
+    player = "X"
+    restart_game()
+    computer_vs_computer_move()
+
+def set_mode_computer_vs_human():
+    global mode, player, player_name
+    mode = "Computer vs. Human"
+    player = "X"
+    player_name = input("Enter your name: ")
+    player_names["X"] = player_name
+    restart_game()
+    computer_move()
+
+# Create the main window
+window = tk.Tk()
+window.title("Tic-Tac-Toe")
+
+# Create the game board and buttons
+board = [[" " for _ in range(3)] for _ in range(3)]
+buttons = [[None] * 3 for _ in range(3)]
+
+for i in range(3):
+    for j in range(3):
+        buttons[i][j] = tk.Button(window, text=" ", font=("normal", 20), width=6, height=2,
+                                  command=lambda row=i, col=j: on_button_click(row, col))
+        buttons[i][j].grid(row=i, column=j)
+
+player = "X"
+mode = None
+player1_name = None
+player2_name = None
+player_name = None
+player_names = {"X": None, "O": None}
+
+# Create restart and new game buttons
+restart_button = tk.Button(window, text="Restart", font=("normal", 14), command=restart_game)
+restart_button.grid(row=3, column=0)
+
+new_game_button = tk.Button(window, text="New Game", font=("normal", 14), command=new_game)
+new_game_button.grid(row=3, column=1)
+
+# Create mode selection buttons
+human_vs_human_button = tk.Button(window, text="Human vs. Human", font=("normal", 14), command=set_mode_human_vs_human)
+human_vs_human_button.grid(row=4, column=0)
+
+computer_vs_computer_button = tk.Button(window, text="Computer vs. Computer", font=("normal", 14), command=set_mode_computer_vs_computer)
+computer_vs_computer_button.grid(row=4, column=1)
+
+computer_vs_human_button = tk.Button(window, text="Computer vs. Human", font=("normal", 14), command=set_mode_computer_vs_human)
+computer_vs_human_button.grid(row=4, column=2)
+
+# Start the game
+if __name__ == "__main__":
+    window.mainloop()
